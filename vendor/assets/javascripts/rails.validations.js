@@ -5,28 +5,32 @@
   $ = jQuery;
 
   $.fn.disableClientSideValidations = function() {
-    return ClientSideValidations.disable(this);
+    ClientSideValidations.disable(this);
+    return this;
   };
 
   $.fn.enableClientSideValidations = function() {
     this.filter(ClientSideValidations.selectors.forms).each(function() {
       return ClientSideValidations.enablers.form(this);
     });
-    return this.filter(ClientSideValidations.selectors.inputs).each(function() {
+    this.filter(ClientSideValidations.selectors.inputs).each(function() {
       return ClientSideValidations.enablers.input(this);
     });
+    return this;
   };
 
   $.fn.resetClientSideValidations = function() {
-    return this.filter(ClientSideValidations.selectors.forms).each(function() {
+    this.filter(ClientSideValidations.selectors.forms).each(function() {
       return ClientSideValidations.reset(this);
     });
+    return this;
   };
 
   $.fn.validate = function() {
-    return this.filter(ClientSideValidations.selectors.forms).each(function() {
+    this.filter(ClientSideValidations.selectors.forms).each(function() {
       return $(this).enableClientSideValidations();
     });
+    return this;
   };
 
   $.fn.isValid = function(validators) {
@@ -114,10 +118,6 @@
     return afterValidate();
   };
 
-  $(function() {
-    return $(ClientSideValidations.selectors.forms).validate();
-  });
-
   if (window.ClientSideValidations === void 0) {
     window.ClientSideValidations = {};
   }
@@ -135,7 +135,6 @@
     var $form, key;
     $form = $(form);
     ClientSideValidations.disable(form);
-    ClientSideValidations.disable($form.find(':input'));
     for (key in form.ClientSideValidations.settings.validators) {
       form.ClientSideValidations.removeError($form.find("[name='" + key + "']"));
     }
@@ -146,11 +145,15 @@
     var $target;
     $target = $(target);
     $target.off('.ClientSideValidations');
-    $target.removeData('valid');
-    $target.removeData('changed');
-    return $target.filter(':input').each(function() {
-      return $(this).removeAttr('data-validate');
-    });
+    if ($target.is('form')) {
+      return ClientSideValidations.disable($target.find(':input'));
+    } else {
+      $target.removeData('valid');
+      $target.removeData('changed');
+      return $target.filter(':input').each(function() {
+        return $(this).removeAttr('data-validate');
+      });
+    }
   };
 
   window.ClientSideValidations.enablers = {
@@ -600,5 +603,9 @@
       pass: function(form, eventData) {}
     }
   };
+
+  $(function() {
+    return $(ClientSideValidations.selectors.forms).validate();
+  });
 
 }).call(this);
